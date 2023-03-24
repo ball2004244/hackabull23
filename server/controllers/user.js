@@ -99,6 +99,7 @@ userRouter.delete("/:id", (req, res) => {
         });
       }
     })
+
     .catch((err) => {
       if (err.kind === "ObjectId" || err.name === "NotFound") {
         return res.status(404).send({
@@ -109,6 +110,9 @@ userRouter.delete("/:id", (req, res) => {
         message: "Could not delete user with id " + req.params.id,
       });
     });
+
+  res.send("Delete Successfully");
 });
+
 
 module.exports = userRouter;
