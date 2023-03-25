@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@withvoid/make-validation": "^1.0.5",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",

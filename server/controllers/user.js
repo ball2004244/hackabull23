@@ -4,8 +4,9 @@ const { response } = require("express");
 
 // Doing CRUD with user in mongodb
 
-const User = require("../models/user");
+const User = require("../models/User");
 
+// Get all users
 userRouter.get("/get", (req, res) => {
   User.find()
     .then((users) => {
@@ -18,6 +19,7 @@ userRouter.get("/get", (req, res) => {
     });
 });
 
+// Create a new user
 userRouter.post("/create", (req, res) => {
   const user = new User({
     username: req.body.username,
@@ -36,6 +38,7 @@ userRouter.post("/create", (req, res) => {
     });
 });
 
+// Find a single user with a userId
 userRouter.get("/:id", (req, res) => {
   User.findById(req.params.id)
 
@@ -59,7 +62,8 @@ userRouter.get("/:id", (req, res) => {
     });
 });
 
-  userRouter.put("/:id", (req, res) => {
+// Update a user identified by the userId in the request
+userRouter.put("/:id", (req, res) => {
   User.findByIdAndUpdate(
     req.params.id,
     {
@@ -90,6 +94,7 @@ userRouter.get("/:id", (req, res) => {
     });
 });
 
+// Delete a user with the specified userId in the request
 userRouter.delete("/:id", (req, res) => {
   User.findByIdAndRemove(req.params.id)
     .then((user) => {
@@ -114,5 +119,64 @@ userRouter.delete("/:id", (req, res) => {
   res.send("Delete Successfully");
 });
 
+
+userRouter.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // get all users
+    const users = await User.find();
+
+    // check if the email is already in the database
+    const user = users.find((user) => user.email === email);
+
+    if (!user) {
+      return res.status(400).send({ message: "Email does not exist" });
+    }
+
+    if (!(await user.matchPassword(password))) {
+      return res.status(400).send({ message: "Password is incorrect" });
+    }
+
+    // generate a token
+    const generateToken = require("../middlwares/token");
+    const token = generateToken(user._id);
+
+    // send the user and the token back to the client
+    res.send({ user, token });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+userRouter.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    // get all users
+    const users = await User.find();
+
+    // check if the email is already in the database
+    const user = users.find((user) => user.email === email);
+
+    if (user) {
+      return res.status(400).send({ message: "Email already exists" });
+    }
+
+    // create a new user
+    const newUser = new User({ username, email, password });
+    await newUser.save();
+
+    // generate a token
+    const generateToken = require("../middlwares/token");
+    const token = generateToken(newUser._id);
+
+    // send the user and the token back to the client
+    res.send({ newUser, token });
+  }
+  catch (error) {
+    console.log(error);
+  }
+});
 
 module.exports = userRouter;
