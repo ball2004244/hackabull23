@@ -3,7 +3,8 @@ require("dotenv").config();
 const setupSocketIO = require("./config/socket");
 
 
-const userRouter = require("../server/controllers/user");
+const userRouter = require("../server/routes/userRouter");
+// const emailRouter = require("../server/routes/sendEmailRouter");
 const chatMessageRouter = require("./routes/chatMessageRouter")
 
 const chatRoomRouter = require("./routes/chatRoomRouter")
@@ -14,9 +15,10 @@ const cor = require("cors");
 
 app.use(cor());
 app.use(express.json());
-app.use("", userRouter);
+app.use("/", userRouter);
+// app.use("/sendemail", emailRouter);
 
-app.use("/chatroom", chatRoomRouter);
+app.use("/chat", chatRoomRouter);
 app.use("/chat", chatMessageRouter)
 
 const connectDB = require("./config/mongo");

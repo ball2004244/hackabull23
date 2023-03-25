@@ -46,17 +46,13 @@ const setupSocketIO = (server) => {
       socket.leave(roomId);
       console.log(`Socket ${socket.id} left room ${roomId}`);
     });
-
-    // Handle send message event
-    socket.on("sendMessage", async ({ roomId, userId, message }) => {
-      try {
-        // Add the new chat message to the database and get the updated chat messages
-        const chatMessage = await addChatMessage(roomId, userId, message);
-        console.log(`Socket ${socket.id} sent ${message} to room ${roomId}`);
-      } catch (error) {
-        console.error(error);
-      }
-    });
+    
+// Handle send message event
+socket.on("sendMessage", ({ roomId, userId, message }) => {
+  // Emit newMessage event to all clients in the room
+  io.to(roomId).emit("newMessage", { roomId, userId, message });
+});
+    
   });
 };
 

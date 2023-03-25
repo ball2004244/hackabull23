@@ -1,12 +1,15 @@
-const chatMessage = require("../models/ChatMessage");
+const chatMessage = require("../models/ChatMessage")
+
 // Function to add a new chat message to a specific chat room
-const addChatMessage = async (roomId, userId, message, socket) => {
+
+// Controller function to add a new chat message to a specific chat room
+const addChatMessage = async (req, res) => {
   try {
     // Create a new ChatMessage object with the sender's ID and the message text
-    const  newChatMessage = new chatMessage({
-      chatRoom: roomId,
-      user: userId,
-      message: message,
+    const newChatMessage = new chatMessage({
+      chatRoom: req.params.roomId,
+      user: req.user._id,
+      message: req.body.message,
     });
 
     // Save the chat message to the database
@@ -14,41 +17,31 @@ const addChatMessage = async (roomId, userId, message, socket) => {
 
     // Retrieve the chat messages for the chat room
     const chatMessages = await chatMessage
-      .find({ chatRoom: roomId })
-      .populate("user", "username")
+      .find({ chatRoom: req.params.roomId })
+      .populate("sender", "username")
       .sort({ createdAt: 1 });
 
-    // Emit the new chat message to all users in the chat room
-    socket.to(roomId).emit("newChatMessage", newChatMessage);
-
-    // Emit the chat messages to all users in the chat room
-    socket.to(roomId).emit("chatMessages", chatMessages);
+    // Emit the new chat message to all users in the chat room (this logic should be handled separately in the appropriate file and on the client-side frontend)
 
     // Return the chat message object
-    return chatMessage;
+    res.status(201).json(newChatMessage);
   } catch (error) {
     console.error(error);
-    throw new Error("Failed to add chat message");
+    res.status(500).json({ message: "Failed to add chat message" });
   }
 };
 
-// Function to get all chat messages for a specific chat room
-const getChatMessages = async (roomId) => {
+const getChatMessages= async (req, res) => {
   try {
-    // Find all chat messages for the specified chat room
-    const chatMessages = await chatMessage
-      .find({ chatRoom: roomId })
-      .populate("user", "username")
-      .sort({ createdAt: 1 });
-
-    // Return the chat messages array
-    return chatMessages;
+    const messages = await chatMessage.find({ chat: req.params.chatRoomId })
+      .populate("sender", "name email")
+      .populate("message");
+    res.json(messages);
   } catch (error) {
-    console.error(error);
-    throw new Error("Failed to get chat messages");
+    res.status(400);
+    throw new Error(error.message);
   }
 };
-
 
 module.exports = {
   addChatMessage,
